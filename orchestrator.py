@@ -17,19 +17,25 @@ def call_conversational_llm_with_retry(developer_prompt: str, messages: list[dic
     Call conversational LLM with status retry logic.
     - Calls LLM, parses status
     - If status None: retry up to MAX_STATUS_RETRIES times
-    - If still failing: raise StatusParseError
+    - If still failing: default to INTAKE (safe fallback)
     - Returns (status, content) on success
     """
+    last_response = ""
     for attempt in range(MAX_STATUS_RETRIES + 1):
         logger.info(f"LLM call attempt {attempt + 1}/{MAX_STATUS_RETRIES + 1}")
         response = call_llm(MODEL_CONVERSATIONAL, developer_prompt, messages)
+        last_response = response
         logger.info(f"LLM response received, length={len(response)}")
         status, content = parse_status(response)
         logger.info(f"Parsed status: {status}")
         if status is not None:
             return (status, content)
         logger.warning(f"Status parse failed on attempt {attempt + 1}, response starts with: {response[:100]}")
-    raise StatusParseError("Status parsing failed after retries")
+
+    # Default to INTAKE if status parsing fails - safer than erroring
+    # Only READY should trigger finalization, so missing status = continue intake
+    logger.warning("All status parse attempts failed, defaulting to INTAKE")
+    return ("INTAKE", last_response)
 
 
 def run_finalization() -> None:
