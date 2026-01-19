@@ -1,3 +1,12 @@
+# Welcome Message (displayed before first interaction)
+WELCOME_MESSAGE = """Welcome to **NomaTax AI Advisor**! I'm here to help you navigate cross-border tax optimization between Italy and the United States.
+
+I am an AI assistant. This consultation provides general guidance based on 2026 legislation. Please consult a certified tax professional before making any decisions or filing.
+
+To get started, could you tell me:
+1. What brings you here today? Are you **moving to Italy**, **moving to the US**, or **managing a current dual-residency situation**?
+2. Which fiscal year are you planning for (e.g., 2026)?"""
+
 # Models
 MODEL_CONVERSATIONAL = "gpt-4o-mini"
 MODEL_SUMMARIZATION = "gpt-4o-mini"

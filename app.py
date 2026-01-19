@@ -1,5 +1,6 @@
 import streamlit as st
 
+from config import WELCOME_MESSAGE
 from orchestrator import handle_user_message
 
 # Initialize session state
@@ -36,9 +37,13 @@ if st.session_state.status == "READY":
     )
 else:
     # Chat display - simple text
-    for msg in st.session_state.recent_messages:
-        role = "User" if msg["role"] == "user" else "Assistant"
-        st.write(f"**{role}:** {msg['content']}")
+    if not st.session_state.recent_messages:
+        # Show welcome message before first interaction
+        st.write(f"**Assistant:** {WELCOME_MESSAGE}")
+    else:
+        for msg in st.session_state.recent_messages:
+            role = "User" if msg["role"] == "user" else "Assistant"
+            st.write(f"**{role}:** {msg['content']}")
 
 # Input (hidden after finalization)
 if st.session_state.status != "READY":
