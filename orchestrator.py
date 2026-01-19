@@ -12,7 +12,7 @@ from summarization import should_summarize, run_summarization
 logger = logging.getLogger(__name__)
 
 
-def call_conversational_llm_with_retry(system_prompt: str, messages: list[dict]) -> tuple[str, str]:
+def call_conversational_llm_with_retry(developer_prompt: str, messages: list[dict]) -> tuple[str, str]:
     """
     Call conversational LLM with status retry logic.
     - Calls LLM, parses status
@@ -22,7 +22,7 @@ def call_conversational_llm_with_retry(system_prompt: str, messages: list[dict])
     """
     for attempt in range(MAX_STATUS_RETRIES + 1):
         logger.info(f"LLM call attempt {attempt + 1}/{MAX_STATUS_RETRIES + 1}")
-        response = call_llm(MODEL_CONVERSATIONAL, system_prompt, messages)
+        response = call_llm(MODEL_CONVERSATIONAL, developer_prompt, messages)
         logger.info(f"LLM response received, length={len(response)}")
         status, content = parse_status(response)
         logger.info(f"Parsed status: {status}")
@@ -76,11 +76,11 @@ def handle_user_message(user_input: str) -> None:
             run_finalization()
             return
 
-        system_prompt = PROMPT_CONVERSATIONAL.format(summary=st.session_state.summary)
+        developer_prompt = PROMPT_CONVERSATIONAL.format(summary=st.session_state.summary)
         logger.info("Calling conversational LLM")
 
         status, content = call_conversational_llm_with_retry(
-            system_prompt,
+            developer_prompt,
             st.session_state.recent_messages
         )
 

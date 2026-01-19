@@ -18,11 +18,17 @@ def get_api_key() -> str:
     raise ValueError("OPENAI_API_KEY not found in st.secrets or environment variables")
 
 
-def call_llm(model: str, system_prompt: str, messages: list[dict]) -> str:
+def call_llm(model: str, developer_prompt: str, messages: list[dict]) -> str:
+    """
+    Call OpenAI API with developer role for instructions.
+
+    The 'developer' role (replacing legacy 'system' role) provides instructions
+    that have higher priority than user messages and cannot be overridden by users.
+    """
     logger.info(f"Calling LLM model={model}, messages_count={len(messages)}")
     client = OpenAI(api_key=get_api_key())
 
-    full_messages = [{"role": "system", "content": system_prompt}] + messages
+    full_messages = [{"role": "developer", "content": developer_prompt}] + messages
 
     max_retries = 3
     for attempt in range(max_retries):
