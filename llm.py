@@ -1,8 +1,11 @@
+import logging
 import os
 import time
 
 import streamlit as st
 from openai import OpenAI, APIConnectionError, RateLimitError, APITimeoutError, AuthenticationError
+
+logger = logging.getLogger(__name__)
 
 
 def get_api_key() -> str:
@@ -16,6 +19,7 @@ def get_api_key() -> str:
 
 
 def call_llm(model: str, system_prompt: str, messages: list[dict]) -> str:
+    logger.info(f"Calling LLM model={model}, messages_count={len(messages)}")
     client = OpenAI(api_key=get_api_key())
 
     full_messages = [{"role": "system", "content": system_prompt}] + messages
@@ -23,15 +27,21 @@ def call_llm(model: str, system_prompt: str, messages: list[dict]) -> str:
     max_retries = 3
     for attempt in range(max_retries):
         try:
+            logger.info(f"API call attempt {attempt + 1}/{max_retries}")
             response = client.chat.completions.create(
                 model=model,
                 messages=full_messages
             )
-            return response.choices[0].message.content
-        except AuthenticationError:
+            content = response.choices[0].message.content
+            logger.info(f"API call successful, response length={len(content)}")
+            return content
+        except AuthenticationError as e:
+            logger.error(f"Authentication error: {e}")
             raise
-        except (RateLimitError, APITimeoutError, APIConnectionError):
+        except (RateLimitError, APITimeoutError, APIConnectionError) as e:
+            logger.warning(f"Retryable error on attempt {attempt + 1}: {type(e).__name__}: {e}")
             if attempt < max_retries - 1:
                 time.sleep(1)
             else:
+                logger.error(f"All {max_retries} attempts failed")
                 raise

@@ -1,6 +1,10 @@
+import logging
+
 from config import MAX_TURNS, PROMPT_SUMMARIZATION, MODEL_SUMMARIZATION
 from context_builder import check_token_threshold
 from llm import call_llm
+
+logger = logging.getLogger(__name__)
 
 
 def should_summarize(summary: str, messages: list[dict], turns_since_summarization: int) -> bool:
@@ -10,8 +14,10 @@ def should_summarize(summary: str, messages: list[dict], turns_since_summarizati
     Returns False otherwise.
     """
     if turns_since_summarization >= MAX_TURNS:
+        logger.info(f"Summarization needed: turns ({turns_since_summarization}) >= MAX_TURNS ({MAX_TURNS})")
         return True
     if check_token_threshold(summary, messages):
+        logger.info("Summarization needed: token threshold reached")
         return True
     return False
 
@@ -40,7 +46,9 @@ def run_summarization(current_summary: str, messages: list[dict]) -> str:
     3. Call call_llm with MODEL_SUMMARIZATION
     4. Return the result (new summary)
     """
+    logger.info(f"Running summarization: summary_len={len(current_summary)}, messages={len(messages)}")
     formatted_messages = format_messages_for_prompt(messages)
     prompt = PROMPT_SUMMARIZATION.format(summary=current_summary, messages=formatted_messages)
     result = call_llm(MODEL_SUMMARIZATION, prompt, [])
+    logger.info(f"Summarization complete, new summary length={len(result)}")
     return result

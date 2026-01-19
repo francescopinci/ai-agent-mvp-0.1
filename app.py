@@ -1,4 +1,11 @@
+import logging
 import streamlit as st
+
+# Configure logging for Streamlit
+logging.basicConfig(
+    level=logging.INFO,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+)
 
 from config import WELCOME_MESSAGE
 from orchestrator import handle_user_message
@@ -8,7 +15,7 @@ if "summary" not in st.session_state:
     st.session_state.summary = ""
 
 if "recent_messages" not in st.session_state:
-    st.session_state.recent_messages = []
+    st.session_state.recent_messages = [{"role": "assistant", "content": WELCOME_MESSAGE}]
 
 if "status" not in st.session_state:
     st.session_state.status = ""
@@ -37,13 +44,9 @@ if st.session_state.status == "READY":
     )
 else:
     # Chat display - simple text
-    if not st.session_state.recent_messages:
-        # Show welcome message before first interaction
-        st.write(f"**Assistant:** {WELCOME_MESSAGE}")
-    else:
-        for msg in st.session_state.recent_messages:
-            role = "User" if msg["role"] == "user" else "Assistant"
-            st.write(f"**{role}:** {msg['content']}")
+    for msg in st.session_state.recent_messages:
+        role = "User" if msg["role"] == "user" else "Assistant"
+        st.write(f"**{role}:** {msg['content']}")
 
 # Input (hidden after finalization)
 if st.session_state.status != "READY":
