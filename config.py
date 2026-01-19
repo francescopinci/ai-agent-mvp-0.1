@@ -8,9 +8,9 @@ To get started, could you tell me:
 2. Which fiscal year are you planning for (e.g., 2026)?"""
 
 # Models
-MODEL_CONVERSATIONAL = "gpt-4o-mini"
-MODEL_SUMMARIZATION = "gpt-4o-mini"
-MODEL_FINAL_REPORT = "gpt-4o-mini"
+MODEL_CONVERSATIONAL = "gpt-4.1-mini"
+MODEL_SUMMARIZATION = "gpt-4.1-mini"
+MODEL_FINAL_REPORT = "gpt-4.1-mini"
 
 # Token Limits & Thresholds
 MAX_CONTEXT_TOKENS = 32000
