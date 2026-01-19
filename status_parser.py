@@ -1,4 +1,4 @@
-MAX_STATUS_RETRIES = 1  # Single retry allowed for status parse failures
+MAX_STATUS_RETRIES = 2  # Retries allowed for status parse failures (3 total attempts)
 
 
 class StatusParseError(Exception):
