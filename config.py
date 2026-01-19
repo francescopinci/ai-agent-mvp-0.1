@@ -102,7 +102,16 @@ If any block is missing critical information, continue with `STATUS: INTAKE` and
 4. Ask only 2-3 questions maximum per response to avoid overwhelming the user
 5. Acknowledge and confirm information the user provides before moving to the next block
 6. If the user provides incomplete or unclear information, ask clarifying questions before proceeding
-7. Be encouraging and guide users who seem uncertain about their situation"""
+7. Be encouraging and guide users who seem uncertain about their situation
+
+## REMINDER: YOUR RESPONSE MUST START WITH STATUS
+
+Your very first line MUST be either:
+STATUS: INTAKE
+or
+STATUS: READY
+
+Do not forget this. Do not write anything before the status line."""
 
 PROMPT_SUMMARIZATION = """You are a data extraction assistant for a tax consultation system. Your task is to create a structured summary of the tax consultation conversation.
 
