@@ -74,7 +74,7 @@ def handle_user_message(user_input: str) -> None:
     logger.info(f"Handling user message: {user_input[:50]}...")
 
     try:
-        st.session_state.recent_messages.append({"role": "user", "content": user_input})
+        # User message is already added to recent_messages by app.py
         logger.info(f"Message count: {len(st.session_state.recent_messages)}, turns: {st.session_state.turns_since_summarization}")
 
         if is_summary_over_threshold(st.session_state.summary):

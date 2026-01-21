@@ -43,14 +43,28 @@ if st.session_state.status == "READY":
         disabled=True
     )
 else:
-    # Chat display - simple text
+    # Display chat history
     for msg in st.session_state.recent_messages:
-        role = "User" if msg["role"] == "user" else "Assistant"
-        st.write(f"**{role}:** {msg['content']}")
+        with st.chat_message(msg["role"]):
+            st.write(msg["content"])
 
-# Input (hidden after finalization)
-if st.session_state.status != "READY":
-    user_input = st.chat_input("Type your message...")
-    if user_input:
+    # Chat input
+    if user_input := st.chat_input("Type your message..."):
+        # Add user message to state and display immediately
+        st.session_state.recent_messages.append({"role": "user", "content": user_input})
+        with st.chat_message("user"):
+            st.write(user_input)
+
+        # Process message (orchestrator adds assistant response to state)
         handle_user_message(user_input)
-        st.rerun()
+
+        # Display error or assistant response
+        if st.session_state.error:
+            st.error(st.session_state.error)
+        elif st.session_state.recent_messages[-1]["role"] == "assistant":
+            with st.chat_message("assistant"):
+                st.write(st.session_state.recent_messages[-1]["content"])
+
+        # Rerun only if switching to report view
+        if st.session_state.status == "READY":
+            st.rerun()
