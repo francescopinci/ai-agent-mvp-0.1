@@ -36,12 +36,12 @@ if st.session_state.error:
 # Main content
 if st.session_state.status == "READY":
     st.header("Your Report")
-    st.text_area(
-        label="Report",
-        value=st.session_state.final_report,
-        height=400,
-        disabled=True
-    )
+    st.markdown(st.session_state.final_report)
+
+    with st.expander("View conversation history"):
+        for msg in st.session_state.recent_messages:
+            with st.chat_message(msg["role"]):
+                st.write(msg["content"])
 else:
     # Display chat history
     for msg in st.session_state.recent_messages:
