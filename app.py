@@ -65,6 +65,5 @@ else:
             with st.chat_message("assistant"):
                 st.write(st.session_state.recent_messages[-1]["content"])
 
-        # Rerun only if switching to report view
-        if st.session_state.status == "READY":
-            st.rerun()
+        # Rerun to ensure consistent display from session state
+        st.rerun()
