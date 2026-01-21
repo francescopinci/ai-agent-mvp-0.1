@@ -79,6 +79,7 @@ def handle_user_message(user_input: str) -> None:
 
         if is_summary_over_threshold(st.session_state.summary):
             logger.info("Summary over threshold, forcing finalization")
+            st.session_state.status = "READY"
             run_finalization()
             return
 
