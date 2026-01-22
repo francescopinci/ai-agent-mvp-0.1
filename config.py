@@ -10,7 +10,7 @@ To get started, could you tell me:
 # Models
 MODEL_CONVERSATIONAL = "gpt-4.1-mini"
 MODEL_SUMMARIZATION = "gpt-4.1-mini"
-MODEL_FINAL_REPORT = "gpt-4.1-mini"
+MODEL_FINAL_REPORT = "gpt-5-2025-08-07"
 
 # Token Limits & Thresholds
 MAX_CONTEXT_TOKENS = 32000
