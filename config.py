@@ -918,7 +918,7 @@ The following would make this report MORE accurate:
 
 MODEL_CONVERSATIONAL = "gpt-4.1-mini"
 MODEL_SUMMARIZATION = "gpt-4.1-mini"
-MODEL_FINAL_REPORT = "gpt-4.1-mini"
+MODEL_FINAL_REPORT = "gpt-5-2025-08-07"
 
 MAX_CONTEXT_TOKENS = 32000
 TOKEN_THRESHOLD_PERCENT = 0.8
