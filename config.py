@@ -1,4 +1,5 @@
 # Welcome Message (displayed before first interaction)
+Ciao Pinci Cazzone!!
 WELCOME_MESSAGE = """Welcome to **NomaTax AI Advisor**! I'm here to help you navigate cross-border tax optimization between Italy and the United States.
 
 I am an AI assistant. This consultation provides general guidance based on 2026 legislation. Please consult a certified tax professional before making any decisions or filing.
