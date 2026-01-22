@@ -41,7 +41,7 @@ Go ahead—no wrong answers here. 👇"""
 # TECHNICAL REFERENCE 2026 (Compressed Tax Rules)
 # ============================================================================
 
-TECHNICAL_REFERENCE_2026 = """
+TECHNICAL_REFERENCE = """
 # US-ITALY TAX RULES 2026 (QUICK REFERENCE)
 
 ## US TAX ESSENTIALS (2026)
