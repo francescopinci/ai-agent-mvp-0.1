@@ -7,7 +7,7 @@
 # WELCOME MESSAGE
 # ============================================================================
 
-WELCOME_MESSAGE = """🎯 **Welcome to NomaTax AI Advisor try2 with 4 docs implementation with technical reference corrected**
+WELCOME_MESSAGE = """🎯 **Welcome to NomaTax AI Advisor try2 with 4 docs implementation with technical reference corrected 2**
 
 I help expats and remote workers understand their taxes when moving between Italy and the United States. Think of me as your first step—getting your situation clear before you meet with a tax professional.
 
@@ -513,7 +513,7 @@ Key principle: The user is NOT a tax expert. Explain everything in plain languag
 {summary}
 
 ## TECHNICAL REFERENCE
-"""
+
 # US-ITALY TAX RULES 2026 (QUICK REFERENCE)
 
 ## US TAX ESSENTIALS (2026)
@@ -684,7 +684,7 @@ Key principle: The user is NOT a tax expert. Explain everything in plain languag
 - **183-day rule:** Physical presence determines residency
 - **Permanent home tie-breaker:** If resident of both, treaty tie-breaker applies (permanent home → center of vital interests → habitual abode → nationality)
 - **Social Security Totalization Agreement:** Prevents double SS contributions; Certificate of Coverage required
-"""
+
 
 ## REPORT STRUCTURE & TONE
 
