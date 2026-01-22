@@ -20,7 +20,7 @@ TURNS_TO_RETAIN_AFTER_SUMMARIZATION = 4
 # WELCOME MESSAGE
 # ============================================================================
 
-WELCOME_MESSAGE = """🎯 **Welcome to NomaTax AI Advisor**
+WELCOME_MESSAGE = """🎯 **Welcome to NomaTax AI Advisor Try1**
 
 I help expats and remote workers understand their taxes when moving between Italy and the United States. Think of me as your first step—getting your situation clear before you meet with a tax professional.
 
