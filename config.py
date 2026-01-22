@@ -4,9 +4,9 @@
 # ============================================================================
 
 # Models
-MODEL_CONVERSATIONAL = "gpt-4o-mini"
-MODEL_SUMMARIZATION = "gpt-4o-mini"
-MODEL_FINAL_REPORT = "gpt-4o-mini"
+MODEL_CONVERSATIONAL = "gpt-4.1-mini"
+MODEL_SUMMARIZATION = "gpt-4.1-mini"
+MODEL_FINAL_REPORT = "gpt-4.1-mini"
 
 # Token Limits & Thresholds
 MAX_CONTEXT_TOKENS = 32000
