@@ -301,6 +301,12 @@ if "show_landing" not in st.session_state:
 if "selected_role" not in st.session_state:
     st.session_state.selected_role = "User"
 
+if "report_versions" not in st.session_state:
+    st.session_state.report_versions = []
+
+if "current_version" not in st.session_state:
+    st.session_state.current_version = 0
+
 # Show landing page first
 if st.session_state.show_landing:
     show_landing_page()
@@ -333,11 +339,13 @@ else:
                         'email': user_email,
                         'messages': st.session_state.recent_messages.copy(),
                         'final_report': "",
-                        'support_requested': False
+                        'support_requested': False,
+                        'report_versions': []
                     }
                 else:
                     st.session_state.recent_messages = st.session_state.users_data[user_id]['messages']
                     st.session_state.final_report = st.session_state.users_data[user_id]['final_report']
+                    st.session_state.report_versions = st.session_state.users_data[user_id].get('report_versions', [])
                 
                 st.rerun()
         else:
@@ -345,6 +353,19 @@ else:
             user_data = st.session_state.users_data[user_id]
             
             st.sidebar.write(f"**User:** {user_data['name']}")
+            
+            # Show version selector if multiple versions exist
+            if len(st.session_state.report_versions) > 1:
+                version_options = [f"v{v['version']} ({v['timestamp'][:10]})" for v in st.session_state.report_versions]
+                selected_version_idx = st.sidebar.selectbox(
+                    "📊 Report Version",
+                    range(len(version_options)),
+                    format_func=lambda i: version_options[i],
+                    index=len(version_options) - 1
+                )
+                st.session_state.current_version = st.session_state.report_versions[selected_version_idx]['version']
+                st.session_state.final_report = st.session_state.report_versions[selected_version_idx]['report']
+            
             if st.sidebar.button("Request Human Accountant"):
                 st.session_state.users_data[user_id]['support_requested'] = True
                 st.sidebar.success("Support requested!")
@@ -356,101 +377,60 @@ else:
             if st.session_state.error:
                 st.error(st.session_state.error)
 
-            if st.session_state.status == "READY":
+            if st.session_state.final_report:
                 report = st.session_state.final_report
                 
+                # Save to user data
                 st.session_state.users_data[user_id]['final_report'] = report
                 st.session_state.users_data[user_id]['messages'] = st.session_state.recent_messages
+                st.session_state.users_data[user_id]['report_versions'] = st.session_state.report_versions
                 
-                import re
-                savings_match = re.search(r'Total estimated annual savings:\s*([€$][\d,k\-]+)', report)
-                confidence_match = re.search(r'Confidence.*?(🟢|🟡|🔴)', report)
+                # Display version info
+                if st.session_state.current_version > 0:
+                    st.info(f"📊 Viewing Report v{st.session_state.current_version} of {len(st.session_state.report_versions)}")
                 
-                st.title("📊 Your Tax Strategy Report")
-                
-                col1, col2, col3 = st.columns(3)
-                with col1:
-                    st.metric("Estimated Annual Savings", 
-                             savings_match.group(1) if savings_match else "See report")
-                with col2:
-                    confidence = confidence_match.group(1) if confidence_match else "🟡"
-                    st.metric("Confidence Level", confidence)
-                with col3:
-                    st.metric("Status", "✅ Complete")
+                # Display report
+                st.markdown(report)
                 
                 st.divider()
                 
-                sections = report.split("## ")
+                # Download button
+                st.download_button(
+                    label="📥 Download Report",
+                    data=report,
+                    file_name=f"tax_report_v{st.session_state.current_version}_{user_data['name']}.txt",
+                    mime="text/plain",
+                    use_container_width=True
+                )
                 
-                if sections[0].strip():
-                    st.markdown(sections[0])
-                
-                for section in sections[1:]:
-                    if not section.strip():
-                        continue
-                        
-                    lines = section.split('\n', 1)
-                    title = lines[0].strip()
-                    content = lines[1] if len(lines) > 1 else ""
-                    
-                    if "SITUATION" in title.upper() or "GLANCE" in title.upper():
-                        with st.expander(f"📋 {title}", expanded=True):
-                            st.markdown(content)
-                    elif "OPTIMIZATION" in title.upper() or "SAVINGS" in title.upper():
-                        with st.expander(f"💰 {title}", expanded=True):
-                            st.markdown(content)
-                    elif "ACTION" in title.upper() or "NEXT STEPS" in title.upper():
-                        with st.expander(f"✅ {title}", expanded=True):
-                            st.markdown(content)
-                    elif "RISK" in title.upper() or "GAP" in title.upper():
-                        with st.expander(f"⚠️ {title}", expanded=False):
-                            st.markdown(content)
-                    else:
-                        with st.expander(f"{title}", expanded=False):
-                            st.markdown(content)
-                
-                st.divider()
-                
-                col1, col2 = st.columns(2)
-                with col1:
-                    if st.button("💬 Continue Asking Questions", use_container_width=True):
-                        st.session_state.status = ""
-                        st.rerun()
-                with col2:
-                    st.download_button(
-                        label="📥 Download Report",
-                        data=report,
-                        file_name=f"tax_report_{user_data['name']}.txt",
-                        mime="text/plain",
-                        use_container_width=True
-                    )
+                st.info("💬 You can ask questions about this report or tell me if any information has changed to generate an updated report.")
 
                 with st.expander("📜 View conversation history"):
                     for msg in st.session_state.recent_messages:
                         with st.chat_message(msg["role"]):
                             st.write(msg["content"])
 
-            else:
-                for msg in st.session_state.recent_messages:
-                    with st.chat_message(msg["role"]):
-                        st.write(msg["content"])
+            # Chat interface (always available)
+            for msg in st.session_state.recent_messages:
+                with st.chat_message(msg["role"]):
+                    st.write(msg["content"])
 
-                if user_input := st.chat_input("Type your message..."):
-                    st.session_state.recent_messages.append({"role": "user", "content": user_input})
-                    with st.chat_message("user"):
-                        st.write(user_input)
+            if user_input := st.chat_input("Type your message..."):
+                st.session_state.recent_messages.append({"role": "user", "content": user_input})
+                with st.chat_message("user"):
+                    st.write(user_input)
 
-                    handle_user_message(user_input)
-                    
-                    st.session_state.users_data[user_id]['messages'] = st.session_state.recent_messages
+                handle_user_message(user_input)
+                
+                st.session_state.users_data[user_id]['messages'] = st.session_state.recent_messages
 
-                    if st.session_state.error:
-                        st.error(st.session_state.error)
-                    elif st.session_state.recent_messages[-1]["role"] == "assistant":
-                        with st.chat_message("assistant"):
-                            st.write(st.session_state.recent_messages[-1]["content"])
+                if st.session_state.error:
+                    st.error(st.session_state.error)
+                elif st.session_state.recent_messages[-1]["role"] == "assistant":
+                    with st.chat_message("assistant"):
+                        st.write(st.session_state.recent_messages[-1]["content"])
 
-                    st.rerun()
+                st.rerun()
 
     else:  # Tax Accountant
         st.title("Tax Accountant Dashboard")
@@ -468,13 +448,14 @@ else:
                         st.write(f"**Email:** {data['email']}")
                         st.write(f"**Messages:** {len(data['messages'])}")
                         
+                        if data.get('report_versions'):
+                            st.write(f"**Report Versions:** {len(data['report_versions'])}")
+                        
                         if data['final_report']:
-                            st.subheader("Final Report")
+                            st.subheader("Latest Report")
                             st.markdown(data['final_report'])
                         
                         st.subheader("Conversation History")
                         for msg in data['messages']:
                             st.write(f"**{msg['role'].upper()}:** {msg['content']}")
                             st.divider()
-
-            
