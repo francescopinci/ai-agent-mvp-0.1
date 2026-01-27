@@ -90,11 +90,17 @@ if role == "User":
             # Save report to user data
             st.session_state.users_data[user_id]['final_report'] = st.session_state.final_report
             st.session_state.users_data[user_id]['messages'] = st.session_state.recent_messages
+            
+            # Reset status to allow continued chat
+            if st.button("Continue Asking Questions"):
+                st.session_state.status = ""
+                st.rerun()
 
             with st.expander("View conversation history"):
                 for msg in st.session_state.recent_messages:
                     with st.chat_message(msg["role"]):
                         st.write(msg["content"])
+
         else:
             # Display chat history
             for msg in st.session_state.recent_messages:
