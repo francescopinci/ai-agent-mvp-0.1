@@ -1,5 +1,6 @@
 import logging
 import traceback
+from datetime import datetime
 
 import streamlit as st
 
@@ -46,6 +47,7 @@ def run_finalization() -> None:
     3. Format PROMPT_FINAL_REPORT with summary
     4. Call final report LLM
     5. Store result in st.session_state.final_report
+    6. Create new report version
     """
     logger.info("Starting finalization sequence")
     logger.info(f"Running final summarization on {len(st.session_state.recent_messages)} messages")
@@ -59,8 +61,25 @@ def run_finalization() -> None:
     logger.info("Generating final report")
     prompt = PROMPT_FINAL_REPORT.format(summary=new_summary)
     final_report = call_llm(MODEL_FINAL_REPORT, prompt, [])
+    
+    # Store current report
     st.session_state.final_report = final_report
-    logger.info(f"Final report generated, length={len(final_report)}")
+    
+    # Create new version
+    if "report_versions" not in st.session_state:
+        st.session_state.report_versions = []
+    
+    version_number = len(st.session_state.report_versions) + 1
+    st.session_state.report_versions.append({
+        "version": version_number,
+        "report": final_report,
+        "timestamp": datetime.now().isoformat(),
+        "summary": new_summary
+    })
+    
+    st.session_state.current_version = version_number
+    
+    logger.info(f"Final report generated as version {version_number}, length={len(final_report)}")
 
 
 def handle_user_message(user_input: str) -> None:
@@ -68,6 +87,7 @@ def handle_user_message(user_input: str) -> None:
     Main entry point. Handles a user message through the full flow.
     - Clears st.session_state.error at start
     - Updates session state as needed
+    - Handles post-report conversations (questions + updates)
     - On exception: sets st.session_state.error with generic message, logs specific error
     """
     st.session_state.error = ""
@@ -124,3 +144,4 @@ def handle_user_message(user_input: str) -> None:
         logger.error(f"Error handling user message: {e}")
         logger.error(traceback.format_exc())
         st.session_state.error = "An error occurred. Please try again."
+
