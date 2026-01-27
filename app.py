@@ -82,21 +82,86 @@ if role == "User":
         if st.session_state.error:
             st.error(st.session_state.error)
 
-        # Main content
+               # Main content
         if st.session_state.status == "READY":
-            st.header("Your Report")
-            st.markdown(st.session_state.final_report)
+            report = st.session_state.final_report
             
             # Save report to user data
-            st.session_state.users_data[user_id]['final_report'] = st.session_state.final_report
+            st.session_state.users_data[user_id]['final_report'] = report
             st.session_state.users_data[user_id]['messages'] = st.session_state.recent_messages
             
-            # Reset status to allow continued chat
-            if st.button("Continue Asking Questions"):
-                st.session_state.status = ""
-                st.rerun()
+            # Extract key metrics from report
+            import re
+            savings_match = re.search(r'Total estimated annual savings:\s*([€$][\d,k\-]+)', report)
+            confidence_match = re.search(r'Confidence.*?(🟢|🟡|🔴)', report)
+            
+            # Dashboard Header
+            st.title("📊 Your Tax Strategy Report")
+            
+            # Key Metrics Row
+            col1, col2, col3 = st.columns(3)
+            with col1:
+                st.metric("Estimated Annual Savings", 
+                         savings_match.group(1) if savings_match else "See report")
+            with col2:
+                confidence = confidence_match.group(1) if confidence_match else "🟡"
+                st.metric("Confidence Level", confidence)
+            with col3:
+                st.metric("Status", "✅ Complete")
+            
+            st.divider()
+            
+            # Split report into sections
+            sections = report.split("## ")
+            
+            # Display first section (intro) normally
+            if sections[0].strip():
+                st.markdown(sections[0])
+            
+            # Display remaining sections as expandable
+            for section in sections[1:]:
+                if not section.strip():
+                    continue
+                    
+                lines = section.split('\n', 1)
+                title = lines[0].strip()
+                content = lines[1] if len(lines) > 1 else ""
+                
+                # Color code certain sections
+                if "SITUATION" in title.upper() or "GLANCE" in title.upper():
+                    with st.expander(f"📋 {title}", expanded=True):
+                        st.markdown(content)
+                elif "OPTIMIZATION" in title.upper() or "SAVINGS" in title.upper():
+                    with st.expander(f"💰 {title}", expanded=True):
+                        st.markdown(content)
+                elif "ACTION" in title.upper() or "NEXT STEPS" in title.upper():
+                    with st.expander(f"✅ {title}", expanded=True):
+                        st.markdown(content)
+                elif "RISK" in title.upper() or "GAP" in title.upper():
+                    with st.expander(f"⚠️ {title}", expanded=False):
+                        st.markdown(content)
+                else:
+                    with st.expander(f"{title}", expanded=False):
+                        st.markdown(content)
+            
+            st.divider()
+            
+            # Action buttons
+            col1, col2 = st.columns(2)
+            with col1:
+                if st.button("💬 Continue Asking Questions", use_container_width=True):
+                    st.session_state.status = ""
+                    st.rerun()
+            with col2:
+                if st.button("📥 Download Report", use_container_width=True):
+                    st.download_button(
+                        label="Download as Text",
+                        data=report,
+                        file_name=f"tax_report_{user_data['name']}.txt",
+                        mime="text/plain"
+                    )
 
-            with st.expander("View conversation history"):
+            with st.expander("📜 View conversation history"):
                 for msg in st.session_state.recent_messages:
                     with st.chat_message(msg["role"]):
                         st.write(msg["content"])
