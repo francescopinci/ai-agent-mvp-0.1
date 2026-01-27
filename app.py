@@ -377,6 +377,7 @@ else:
             if st.session_state.error:
                 st.error(st.session_state.error)
 
+
             if st.session_state.final_report:
                 report = st.session_state.final_report
                 
@@ -385,35 +386,32 @@ else:
                 st.session_state.users_data[user_id]['messages'] = st.session_state.recent_messages
                 st.session_state.users_data[user_id]['report_versions'] = st.session_state.report_versions
                 
-                # Display version info
-                if st.session_state.current_version > 0:
-                    st.info(f"📊 Viewing Report v{st.session_state.current_version} of {len(st.session_state.report_versions)}")
+                # Two-column layout
+                col_report, col_chat = st.columns([1.2, 1])
                 
-                # Display report
-                st.markdown(report, unsafe_allow_html=True)
+                with col_report:
+                    st.subheader("📊 Your Tax Report")
+                    if st.session_state.current_version > 0:
+                        st.caption(f"v{st.session_state.current_version} of {len(st.session_state.report_versions)}")
+                    
+                    st.markdown(report, unsafe_allow_html=True)
+                    
+                    st.download_button(
+                        label="📥 Download Report",
+                        data=report,
+                        file_name=f"tax_report_v{st.session_state.current_version}_{user_data['name']}.txt",
+                        mime="text/plain",
+                        use_container_width=True
+                    )
                 
-                st.divider()
-                
-                # Download button
-                st.download_button(
-                    label="📥 Download Report",
-                    data=report,
-                    file_name=f"tax_report_v{st.session_state.current_version}_{user_data['name']}.txt",
-                    mime="text/plain",
-                    use_container_width=True
-                )
-                
-                st.info("💬 You can ask questions about this report or tell me if any information has changed to generate an updated report.")
-
-                with st.expander("📜 View conversation history"):
-                    for msg in st.session_state.recent_messages:
+                with col_chat:
+                    st.subheader("💬 Conversation")
+                    st.caption("Ask questions or provide updates")
+                    
+                    for msg in st.session_state.recent_messages[-8:]:
                         with st.chat_message(msg["role"]):
                             st.write(msg["content"])
 
-            # Chat interface (always available)
-            for msg in st.session_state.recent_messages:
-                with st.chat_message(msg["role"]):
-                    st.write(msg["content"])
 
             if user_input := st.chat_input("Type your message..."):
                 st.session_state.recent_messages.append({"role": "user", "content": user_input})
