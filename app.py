@@ -390,7 +390,7 @@ else:
                     st.info(f"📊 Viewing Report v{st.session_state.current_version} of {len(st.session_state.report_versions)}")
                 
                 # Display report
-                st.markdown(report)
+                st.markdown(report, unsafe_allow_html=True)
                 
                 st.divider()
                 
