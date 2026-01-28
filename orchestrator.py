@@ -151,4 +151,3 @@ def handle_user_message(user_input: str) -> None:
         logger.error(f"Error handling user message: {e}")
         logger.error(traceback.format_exc())
         st.session_state.error = "An error occurred. Please try again."
-
