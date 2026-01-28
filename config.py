@@ -660,6 +660,8 @@ Generate the report in this EXACT format:
 
 ## 💰 TAX OPTIMIZATION STRATEGIES
 
+**List ALL possible applicable strategies from the technical knowledge base.**
+
 | Strategy | Annual Savings | Eligibility |
 |----------|----------------|-------------|
 | [Strategy name] | [Amount] | ✅ YES / ⚠️ MAYBE / ❌ NO |
