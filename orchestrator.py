@@ -78,8 +78,15 @@ def run_finalization() -> None:
     })
     
     st.session_state.current_version = version_number
+
+    # Notify user of new report
+    st.session_state.recent_messages.append({
+        "role": "assistant",
+        "content": f"✅ **Report v{version_number} generated!** Check the left panel for your updated report."
+    })
     
     logger.info(f"Final report generated as version {version_number}, length={len(final_report)}")
+
 
 
 def handle_user_message(user_input: str) -> None:
