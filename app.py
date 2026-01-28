@@ -387,14 +387,19 @@ else:
                 st.session_state.users_data[user_id]['report_versions'] = st.session_state.report_versions
                 
                 # Two-column layout
-                col_report, col_chat = st.columns([1.2, 1])
+                col_report, col_chat = st.columns([1.2, 1], gap="large")
                 
                 with col_report:
                     st.subheader("📊 Your Tax Report")
                     if st.session_state.current_version > 0:
                         st.caption(f"v{st.session_state.current_version} of {len(st.session_state.report_versions)}")
                     
-                    st.markdown(report, unsafe_allow_html=True)
+                    st.markdown(f"""
+                        <div style="height: 65vh; overflow-y: auto; padding: 1rem; border: 1px solid #e0e0e0; border-radius: 8px; background: white;">
+                            {report}
+                        </div>
+                    """, unsafe_allow_html=True)
+
                     
                     st.download_button(
                         label="📥 Download Report",
@@ -404,31 +409,26 @@ else:
                         use_container_width=True
                     )
                 
+
                 with col_chat:
                     st.subheader("💬 Conversation")
                     st.caption("Ask questions or provide updates")
-                    
+
+                    st.markdown('<div style="height: 55vh; overflow-y: auto; padding: 0.5rem; border: 1px solid #e0e0e0; border-radius: 8px; background: #f9f9f9; margin-bottom: 1rem;">', unsafe_allow_html=True)
                     for msg in st.session_state.recent_messages[-8:]:
                         with st.chat_message(msg["role"]):
                             st.write(msg["content"])
+                    st.markdown('</div>', unsafe_allow_html=True)
+                    
+                    # Chat input box
+                    if user_input := st.chat_input("Type your message..."):
+                        st.session_state.recent_messages.append({"role": "user", "content": user_input})
+                        handle_user_message(user_input)
+                        st.session_state.users_data[user_id]['messages'] = st.session_state.recent_messages
+                        if st.session_state.error:
+                            st.error(st.session_state.error)
+                        st.rerun()
 
-
-            if user_input := st.chat_input("Type your message..."):
-                st.session_state.recent_messages.append({"role": "user", "content": user_input})
-                with st.chat_message("user"):
-                    st.write(user_input)
-
-                handle_user_message(user_input)
-                
-                st.session_state.users_data[user_id]['messages'] = st.session_state.recent_messages
-
-                if st.session_state.error:
-                    st.error(st.session_state.error)
-                elif st.session_state.recent_messages[-1]["role"] == "assistant":
-                    with st.chat_message("assistant"):
-                        st.write(st.session_state.recent_messages[-1]["content"])
-
-                st.rerun()
 
     else:  # Tax Accountant
         st.title("Tax Accountant Dashboard")
