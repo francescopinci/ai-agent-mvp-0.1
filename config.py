@@ -484,7 +484,7 @@ BEFORE RESPONDING:
 # SUMMARIZATION PROMPT
 # ============================================================================
 
-PROMPT_SUMMARIZATION = """You are a data extraction specialist. Your job is to maintain a clean, structured summary of the tax consultation.
+PROMPT_SUMMARIZATION = """You are a data extraction specialist. Your job is to maintain a clean, detailed summary of the tax consultation. You should not remove any information, paying special attention to the user's desires, requests, and clarifications.
 
 ## PREVIOUS SUMMARY
 {summary}
@@ -494,7 +494,7 @@ PROMPT_SUMMARIZATION = """You are a data extraction specialist. Your job is to m
 
 ## YOUR TASK
 
-Update the summary to include ALL new tax-relevant information from this conversation turn. Keep it organized and easy to scan.
+Update the summary to include ALL new information from the messages. Keep it detailed, organized, and easy to scan.
 
 ## REQUIRED OUTPUT FORMAT
 
@@ -503,6 +503,7 @@ Use exactly this structure:
 ### CONSULTATION OBJECTIVE
 - Situation: [moving to Italy / moving to US / managing dual-residency / not yet determined]
 - Target Fiscal Year: [year or "not specified"]
+- User Main Focus: [All detailed questions and doubts the user expressed in the first message, be extensive this is critical information.]
 
 ### RESIDENCY & TIMELINE
 - Current Location: [country or "not specified"]
