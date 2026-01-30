@@ -57,6 +57,7 @@ def run_finalization() -> None:
     logger.info(f"Summary updated, length={len(new_summary)}")
 
     logger.info("Generating final report")
+    logger.info(f"Summary sent to final report LLM:\n{new_summary}")
     prompt = PROMPT_FINAL_REPORT.format(summary=new_summary)
     final_report = call_llm(MODEL_FINAL_REPORT, prompt, [])
     st.session_state.final_report = final_report
@@ -85,6 +86,7 @@ def handle_user_message(user_input: str) -> None:
 
         developer_prompt = PROMPT_CONVERSATIONAL.format(summary=st.session_state.summary)
         logger.info("Calling conversational LLM")
+        logger.info(f"Summary sent to conversational LLM:\n{st.session_state.summary}")
 
         status, content = call_conversational_llm_with_retry(
             developer_prompt,
