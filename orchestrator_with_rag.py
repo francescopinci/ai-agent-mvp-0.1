@@ -1,0 +1,134 @@
+import logging
+import traceback
+
+import streamlit as st
+
+from config import MODEL_CONVERSATIONAL, MODEL_FINAL_REPORT, PROMPT_CONVERSATIONAL, PROMPT_FINAL_REPORT
+from llm import call_llm
+from status_parser import parse_status, StatusParseError, MAX_STATUS_RETRIES
+from context_builder import is_summary_over_threshold, trim_messages_after_summarization
+from summarization import should_summarize, run_summarization
+from rag_helper import get_rag_context
+
+logger = logging.getLogger(__name__)
+
+
+def call_conversational_llm_with_retry(developer_prompt: str, messages: list[dict]) -> tuple[str, str]:
+    """
+    Call conversational LLM with status retry logic.
+    - Calls LLM, parses status
+    - If status None: retry up to MAX_STATUS_RETRIES times
+    - If still failing: default to INTAKE (safe fallback)
+    - Returns (status, content) on success
+    """
+    last_response = ""
+    for attempt in range(MAX_STATUS_RETRIES + 1):
+        logger.info(f"LLM call attempt {attempt + 1}/{MAX_STATUS_RETRIES + 1}")
+        response = call_llm(MODEL_CONVERSATIONAL, developer_prompt, messages)
+        last_response = response
+        logger.info(f"LLM response received, length={len(response)}")
+        status, content = parse_status(response)
+        logger.info(f"Parsed status: {status}")
+        if status is not None:
+            return (status, content)
+        logger.warning(f"Status parse failed on attempt {attempt + 1}, response starts with: {response[:100]}")
+
+    # Default to INTAKE if status parsing fails - safer than erroring
+    # Only READY should trigger finalization, so missing status = continue intake
+    logger.warning("All status parse attempts failed, defaulting to INTAKE")
+    return ("INTAKE", last_response)
+
+
+def run_finalization() -> None:
+    """
+    Execute finalization sequence:
+    1. Run final summarization on remaining messages
+    2. Update st.session_state.summary
+    3. Format PROMPT_FINAL_REPORT with summary
+    4. Call final report LLM
+    5. Store result in st.session_state.final_report
+    """
+    logger.info("Starting finalization sequence")
+    logger.info(f"Running final summarization on {len(st.session_state.recent_messages)} messages")
+    new_summary = run_summarization(
+        st.session_state.summary,
+        st.session_state.recent_messages
+    )
+    st.session_state.summary = new_summary
+    logger.info(f"Summary updated, length={len(new_summary)}")
+
+    logger.info("Generating final report")
+    logger.info(f"Summary sent to final report LLM:\n{new_summary}")
+    
+    # Get RAG context from tax documents
+    logger.info("Retrieving RAG context from tax documents")
+    rag_context = get_rag_context(new_summary, top_k=5)
+    
+    prompt = PROMPT_FINAL_REPORT.format(summary=new_summary) + rag_context
+    final_report = call_llm(MODEL_FINAL_REPORT, prompt, [])
+    st.session_state.final_report = final_report
+    logger.info(f"Final report generated, length={len(final_report)}")
+
+
+def handle_user_message(user_input: str) -> None:
+    """
+    Main entry point. Handles a user message through the full flow.
+    - Clears st.session_state.error at start
+    - Updates session state as needed
+    - On exception: sets st.session_state.error with generic message, logs specific error
+    """
+    st.session_state.error = ""
+    logger.info(f"Handling user message: {user_input[:50]}...")
+
+    try:
+        # User message is already added to recent_messages by app.py
+        logger.info(f"Message count: {len(st.session_state.recent_messages)}, turns: {st.session_state.turns_since_summarization}")
+
+        if is_summary_over_threshold(st.session_state.summary):
+            logger.info("Summary over threshold, forcing finalization")
+            st.session_state.status = "READY"
+            run_finalization()
+            return
+
+        developer_prompt = PROMPT_CONVERSATIONAL.format(summary=st.session_state.summary)
+        logger.info("Calling conversational LLM")
+        logger.info(f"Summary sent to conversational LLM:\n{st.session_state.summary}")
+
+        status, content = call_conversational_llm_with_retry(
+            developer_prompt,
+            st.session_state.recent_messages
+        )
+
+        st.session_state.recent_messages.append({"role": "assistant", "content": content})
+        st.session_state.status = status
+        st.session_state.turns_since_summarization += 1
+        logger.info(f"Status set to: {status}, turns now: {st.session_state.turns_since_summarization}")
+
+        if status == "READY":
+            logger.info("Status is READY, starting finalization")
+            run_finalization()
+            return
+
+        if should_summarize(
+            st.session_state.summary,
+            st.session_state.recent_messages,
+            st.session_state.turns_since_summarization
+        ):
+            logger.info("Summarization triggered")
+            new_summary = run_summarization(
+                st.session_state.summary,
+                st.session_state.recent_messages
+            )
+            st.session_state.summary = new_summary
+            st.session_state.recent_messages = trim_messages_after_summarization(
+                st.session_state.recent_messages
+            )
+            st.session_state.turns_since_summarization = 0
+            logger.info(f"Summarization complete, messages trimmed to {len(st.session_state.recent_messages)}")
+
+        logger.info("User message handled successfully")
+
+    except Exception as e:
+        logger.error(f"Error handling user message: {e}")
+        logger.error(traceback.format_exc())
+        st.session_state.error = "An error occurred. Please try again."
